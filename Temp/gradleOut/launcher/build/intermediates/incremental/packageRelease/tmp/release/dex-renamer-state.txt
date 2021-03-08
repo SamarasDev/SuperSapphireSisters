@@ -1,0 +1,4 @@
+#Fri Nov 27 13:35:39 EST 2020
+base.0=C\:\\Users\\Thinkpad\\Super Sapphire Sisters\\Temp\\gradleOut\\launcher\\build\\intermediates\\dex\\release\\out\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
