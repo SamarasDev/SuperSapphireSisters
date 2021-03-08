@@ -1,2 +1,0 @@
-com/sapphire/sisters/BuildConfig.java
- com.sapphire.sisters.BuildConfig
