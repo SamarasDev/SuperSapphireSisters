@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 public class InputManager : MonoBehaviour
@@ -27,7 +28,7 @@ public class InputManager : MonoBehaviour
 	|								|
 	=================================
 	
-	Now let's say that we want to divide the screen into three pieces
+	Now let's say that we want to divide the screen into three sections
 	
 	=================================
 	|		|				|		|
@@ -39,17 +40,20 @@ public class InputManager : MonoBehaviour
 	|		|				|		|
 	=================================
 	
+	Why would we do this?
 	If you are holding the device sideways, or landscape style, 
 	it is unlikely that you would ever touch any of these
 	parts of the screen with more than one finger/thumb at a time,
+	and we can group controls into each of the 3 sections.
 	
 	Therefore:
 	
 	We could now treat these three pieces separately and give them their own input event listeners
+	since we assume only one finger would interact with each section
 	
 	Screen:
 	
-	This class attaches one touch event listener for each of these three screen sections.
+	This class attaches one "touch event listener" for each of these three screen sections.
 	
 				SECTION 2
 	=================================
@@ -96,7 +100,7 @@ public class InputManager : MonoBehaviour
 	
 	(===================================================================================)
 	
-	Each Section is a struct and has 
+	Each Section is a struct:
 	
 	Width: The width of this section, in resolution pixels. This is used to calculate the X, Y, OldX, OldY, etc
 	Height: The height of this section, in resolution pixels. This is used to calculate the X, Y, OldX, OldY, etc
@@ -111,7 +115,7 @@ public class InputManager : MonoBehaviour
 	
 	*/
 	
-	public struct Section1 
+	public struct Section
 	{	
 		public int Width;
 		public int Height;
@@ -126,53 +130,29 @@ public class InputManager : MonoBehaviour
 	    public int Pressed;
 	}
 
-	public struct Section2
-	{	
-		public int Width;
-		public int Height;
-		public int ScreenWidth;
-		public int ScreenHeight;
-		
-		public double X;
-		public double Y;
-		public double OldX;
-		public double OldY;
-		
-	    public int Pressed;
-	}
-	
-	public struct Section3
-	{	
-		public int Width;
-		public int Height;
-		public int ScreenWidth;
-		public int ScreenHeight;
-		
-		public double X;
-		public double Y;
-		public double OldX;
-		public double OldY;
-		
-	    public int Pressed;
-	}
-	
 	//Used for our wonky resizing code in Update. Please fix this if you know a better solution. (See below)
 	private static int currentScreenWidth;
 	private static int currentScreenHeight;
+	public Text myText;
 	
 	//Our way of interacting with our sections outside of this class.
-	Section1 S1 = new Section1();
-	Section2 S2 = new Section2();
-	Section3 S3 = new Section3();
+	public Section S1 = new Section();
+	public Section S2 = new Section();
+	public Section S3 = new Section();
+	
+	Touch touch;
 	
     void Start()
     {
 			currentScreenWidth = Screen.width;
 			currentScreenHeight = Screen.height;
+			myText=GameObject.Find("DebugText").GetComponent<Text>();
     }
 
     void Update()
     {
+		
+		myText.text = "test";
 		// UNITY PROGRAMMERS PLEASE HELP!!!
 		//
 		// (Samaras - 3/10/2021): If anyone knows a better way to check for screen resize events in Unity please fix this
@@ -180,21 +160,53 @@ public class InputManager : MonoBehaviour
 		// AFAIK Unity has no such elegant event listeners for screen resizing events...
 		// Putting this code in Update can't be the best solution
 		
-		if (Screen.width != currentScreenWidth || Screen.height != currentScreenHeight)
-		{
-			currentScreenWidth = Screen.width;
-			currentScreenHeight = Screen.height;
-			
-			S1.ScreenWidth = (int)Math.Round((double)((currentScreenWidth - ((4d/3d) * currentScreenHeight))/2));
-			S1.ScreenHeight = currentScreenHeight;
-			S2.ScreenWidth = (int)Math.Round((double)((4d/3d) * currentScreenHeight));
-			S2.ScreenHeight = currentScreenHeight;
-			S3.ScreenWidth = (int)Math.Round((double)((currentScreenWidth - ((4d/3d) * currentScreenHeight))/2));
-			S3.ScreenHeight = currentScreenHeight;
-			
-		} // updates our current sections screen sizes when our device resizes screens (Say a phone or any other device)
+		// See: https://forum.unity.com/threads/window-resize-event.40253/
 		
-        Touch myTouch = Input.GetTouch(0);
-		//myTouch.fingerId
+			if (Screen.width != currentScreenWidth || Screen.height != currentScreenHeight)
+			{
+				currentScreenWidth = Screen.width;
+				currentScreenHeight = Screen.height;
+				
+				S1.ScreenWidth = (int)Math.Round((double)((currentScreenWidth - ((4d/3d) * currentScreenHeight))/2));
+				S1.ScreenHeight = currentScreenHeight;
+				S2.ScreenWidth = (int)Math.Round((double)((4d/3d) * currentScreenHeight));
+				S2.ScreenHeight = currentScreenHeight;
+				S3.ScreenWidth = (int)Math.Round((double)((currentScreenWidth - ((4d/3d) * currentScreenHeight))/2));
+				S3.ScreenHeight = currentScreenHeight;
+				
+			} // updates our current sections screen sizes when our device resizes screens (Say a phone or any other device)
+			
+			
+        if (Input.touchCount > 0)
+        {
+            touch = Input.GetTouch(0);
+
+			myText.text = "x: " + touch.position.x.ToString() + "y: " + touch.position.y.ToString();
+			
+            // Move the cube if the screen has the finger moving.
+            if (touch.phase == TouchPhase.Moved)
+            {            
+                myText.text = "x: " + touch.position.x.ToString() + "y: " + touch.position.y.ToString();
+            }
+
+            if (Input.touchCount == 2)
+            {
+                touch = Input.GetTouch(1);
+
+                if (touch.phase == TouchPhase.Began)
+                {
+                    // Halve the size of the cube.
+                    //transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+                }
+
+                if (touch.phase == TouchPhase.Ended)
+                {
+                    // Restore the regular size of the cube.
+                    //transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+                }
+            }
+        }		
+		
+
     }
 }
